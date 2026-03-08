@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriSaarthi - AI Agricultural Advisor</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--earth:#2D4A1E;--leaf:#4A7C2F;--sprout:#7DB356;--sun:#F5C842;--soil:#8B5E3C;--cream:#F8F3E8;--white:#FDFCF9;--dark:#1A2E0F;--wg:#25D366;--wd:#075E54;--wl:#DCF8C6;--wb:#ECE5DD;--wh:#128C7E}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--dark);overflow-x:hidden}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:15px 5%;display:flex;align-items:center;justify-content:space-between;background:rgba(248,243,232,.94);backdrop-filter:blur(12px);border-bottom:1px solid rgba(74,124,47,.15);flex-wrap:wrap;gap:8px}
+.logo{display:flex;align-items:center;gap:9px;font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:900;color:var(--earth)}
+nav ul{list-style:none;display:flex;gap:26px}
+nav ul a{text-decoration:none;color:var(--earth);font-size:.87rem;font-weight:500;transition:color .2s}
+nav ul a:hover{color:var(--sprout)}
+.nav-cta{background:var(--earth)!important;color:var(--cream)!important;padding:7px 18px;border-radius:100px}
+.lsw{display:flex;gap:4px}
+.lb{padding:4px 10px;border-radius:100px;border:1.5px solid rgba(74,124,47,.3);background:transparent;color:var(--earth);font-size:.73rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.lb.on,.lb:hover{background:var(--earth);color:var(--cream);border-color:var(--earth)}
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:110px 5% 60px;gap:60px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 70% at 80% 50%,rgba(125,179,86,.12) 0%,transparent 60%);pointer-events:none}
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(74,124,47,.1);border:1px solid rgba(74,124,47,.25);color:var(--leaf);padding:6px 16px;border-radius:100px;font-size:.77rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px;animation:fu .6s ease both}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2.7rem,5vw,4rem);font-weight:900;line-height:1.1;color:var(--dark);margin-bottom:11px;animation:fu .6s .1s ease both}
+.hero h1 span{color:var(--leaf);position:relative}
+.hero h1 span::after{content:'';position:absolute;bottom:2px;left:0;right:0;height:4px;background:var(--sun);border-radius:2px;transform:scaleX(0);transform-origin:left;animation:ul .8s .8s ease forwards}
+.hsub{font-family:'Noto Sans Devanagari',sans-serif;font-size:1.15rem;color:var(--soil);margin-bottom:14px;animation:fu .6s .2s ease both}
+.hero>div>p{font-size:1.02rem;color:#4a5568;line-height:1.7;max-width:480px;margin-bottom:30px;animation:fu .6s .3s ease both}
+.hbtns{display:flex;gap:13px;flex-wrap:wrap;animation:fu .6s .4s ease both}
+.bp{display:inline-flex;align-items:center;gap:8px;background:var(--earth);color:var(--cream);padding:12px 24px;border-radius:100px;font-size:.93rem;font-weight:600;text-decoration:none;border:none;cursor:pointer;transition:all .2s;box-shadow:0 4px 18px rgba(45,74,30,.3)}
+.bp:hover{background:var(--leaf);transform:translateY(-2px)}
+.bs{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--earth);padding:12px 24px;border-radius:100px;font-size:.93rem;font-weight:600;text-decoration:none;cursor:pointer;border:2px solid var(--earth);transition:all .2s}
+.bs:hover{background:var(--earth);color:var(--cream)}
+.hstats{display:flex;gap:26px;margin-top:40px;animation:fu .6s .5s ease both}
+.snum{font-family:'Playfair Display',serif;font-size:1.85rem;font-weight:900;color:var(--earth)}
+.slbl{font-size:.76rem;color:#718096;margin-top:1px}
+.hv{display:flex;justify-content:center;animation:fu .8s .3s ease both}
+.pm{width:258px;background:#1a1a1a;border-radius:38px;padding:10px;box-shadow:0 38px 76px rgba(0,0,0,.3);position:relative;animation:fl 4s ease-in-out infinite}
+.pm::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:65px;height:5px;background:#333;border-radius:3px;z-index:10}
+.ps{background:var(--wb);border-radius:28px;overflow:hidden;height:520px;display:flex;flex-direction:column}
+.wh2{background:var(--wh);padding:28px 13px 10px;display:flex;align-items:center;gap:9px;color:white}
+.wav{width:34px;height:34px;border-radius:50%;background:var(--sprout);display:flex;align-items:center;justify-content:center;font-size:1rem}
+.wn{font-weight:600;font-size:.83rem}.ws{font-size:.68rem;opacity:.85}
+.wms{flex:1;overflow:hidden;padding:9px;display:flex;flex-direction:column;gap:6px}
+.wm{max-width:82%;padding:6px 10px;border-radius:7px;font-size:.72rem;line-height:1.5}
+.wmr{background:white;align-self:flex-start;border-bottom-left-radius:2px;font-family:'Noto Sans Devanagari',sans-serif}
+.wms2{background:var(--wl);align-self:flex-end;border-bottom-right-radius:2px}
+.wt{font-size:.56rem;opacity:.55;text-align:right;margin-top:1px}
+.wb2{background:white;padding:6px 9px;display:flex;align-items:center;gap:6px}
+.wi{flex:1;background:var(--wb);border:none;border-radius:17px;padding:6px 11px;font-size:.72rem;outline:none}
+.ws2{width:30px;height:30px;border-radius:50%;background:var(--wh);border:none;color:white;font-size:.77rem;cursor:pointer}
+.sec{padding:86px 5%}
+.sl{text-align:center;font-size:.77rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--leaf);margin-bottom:9px}
+.st{font-family:'Playfair Display',serif;font-size:clamp(1.85rem,4vw,2.75rem);font-weight:900;text-align:center;color:var(--dark);margin-bottom:13px}
+.ss{text-align:center;color:#718096;font-size:.98rem;max-width:520px;margin:0 auto 52px}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;max-width:1180px;margin:0 auto}
+.fc{background:var(--cream);border-radius:17px;padding:26px;border:1px solid rgba(74,124,47,.1);transition:transform .3s,box-shadow .3s}
+.fc:hover{transform:translateY(-5px);box-shadow:0 16px 46px rgba(45,74,30,.1)}
+.fi{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.45rem;margin-bottom:16px}
+.fc h3{font-family:'Playfair Display',serif;font-size:1.18rem;font-weight:700;color:var(--dark);margin-bottom:7px}
+.fc p{color:#718096;line-height:1.62;font-size:.9rem}
+.ftag{display:inline-block;margin-top:13px;background:rgba(74,124,47,.1);color:var(--leaf);padding:3px 10px;border-radius:100px;font-size:.7rem;font-weight:600}
+.ds{padding:86px 5%;background:var(--earth);position:relative;overflow:hidden}
+.ds::before{content:'';position:absolute;inset:0;opacity:.25;background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%234A7C2F' fill-opacity='0.5'%3E%3Cpath d='M20 20.5V18H0v5h5v5H0v5h20v-2.5l5 2.5V20l-5 .5zM20 0H0v5h5v5H0v5h20V0zm20 0H25v20h15V0z'/%3E%3C/g%3E%3C/svg%3E")}
+.di{max-width:1060px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:68px;align-items:start;position:relative;z-index:1}
+.dt .sl{color:var(--sun);text-align:left}.dt .st{color:var(--cream);text-align:left;margin-bottom:17px}
+.dt>p{color:rgba(248,243,232,.74);line-height:1.8;margin-bottom:26px}
+.dfs{display:flex;flex-direction:column;gap:13px}
+.df{display:flex;align-items:center;gap:11px;color:var(--cream)}
+.dfi{width:37px;height:37px;border-radius:10px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:.97rem;flex-shrink:0}
+.dft{font-size:.88rem;opacity:.9}
+.cb{background:var(--wb);border-radius:19px;overflow:hidden;box-shadow:0 28px 66px rgba(0,0,0,.4)}
+.ch{background:var(--wh);padding:13px 17px;display:flex;align-items:center;gap:10px;color:white}
+.ca{width:40px;height:40px;border-radius:50%;background:var(--sprout);display:flex;align-items:center;justify-content:center;font-size:1.25rem}
+.cn{font-weight:700;font-size:.92rem}.cs{font-size:.73rem;opacity:.85}
+.cod{width:7px;height:7px;border-radius:50%;background:var(--wg);margin-left:auto;box-shadow:0 0 0 2px rgba(255,255,255,.3)}
+.clb{background:white;padding:7px 11px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;border-bottom:1px solid rgba(0,0,0,.06)}
+.clb span{font-size:.7rem;color:#888;font-weight:600}
+.cl{padding:4px 9px;border-radius:100px;border:1.5px solid rgba(74,124,47,.3);background:transparent;color:var(--earth);font-size:.7rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.cl.on,.cl:hover{background:var(--earth);color:white;border-color:var(--earth)}
+.qb{display:flex;flex-wrap:wrap;gap:5px;padding:7px 11px 4px;background:rgba(255,255,255,.5)}
+.qr{background:white;border:1.5px solid var(--wh);color:var(--wh);border-radius:17px;padding:4px 10px;font-size:.73rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;white-space:nowrap}
+.qr:hover{background:var(--wh);color:white}
+.uh{text-align:center;font-size:.68rem;color:#777;padding:4px 11px;background:rgba(125,179,86,.08)}
+.cm2{height:310px;overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:8px}
+.cm2::-webkit-scrollbar{width:3px}.cm2::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:2px}
+.msg2{max-width:80%;padding:8px 12px;border-radius:9px;font-size:.83rem;line-height:1.58;animation:mi .3s ease both}
+.mt{font-size:.63rem;opacity:.5;text-align:right;margin-top:3px}
+.mr2{background:white;align-self:flex-start;border-bottom-left-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.07)}
+.ms2{background:var(--wl);align-self:flex-end;border-bottom-right-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.07)}
+.imm{max-width:80%;align-self:flex-end;animation:mi .3s ease both}
+.imm img{width:165px;height:115px;object-fit:cover;border-radius:9px;border-bottom-right-radius:2px;display:block}
+.imc{background:var(--wl);padding:4px 8px;font-size:.68rem;color:#555;border-radius:0 0 9px 2px}
+.tyi{background:white;align-self:flex-start;padding:10px 13px;border-radius:9px;border-bottom-left-radius:2px;display:none}
+.td{display:inline-block;width:6px;height:6px;border-radius:50%;background:#bbb;margin:0 2px;animation:tb 1.2s infinite}
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+.an{background:white;align-self:flex-start;padding:10px 13px;border-radius:9px;border-bottom-left-radius:2px;display:none;font-size:.8rem;color:#555}
+.pr{height:3px;background:#eee;border-radius:2px;margin-top:6px;overflow:hidden;width:145px}
+.pf{height:100%;background:linear-gradient(to right,var(--leaf),var(--sprout));border-radius:2px;width:0;transition:width 3s ease}
+.cia{background:white;padding:9px 11px;display:flex;align-items:center;gap:7px;border-top:1px solid rgba(0,0,0,.06)}
+.ci{flex:1;border:none;outline:none;background:var(--wb);border-radius:21px;padding:8px 13px;font-size:.85rem;font-family:'DM Sans',sans-serif}
+.ub{width:35px;height:35px;border-radius:50%;background:var(--sprout);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;font-size:.9rem;transition:all .2s;position:relative;flex-shrink:0}
+.ub:hover{background:var(--leaf);transform:scale(1.05)}
+.ub input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.sb{width:35px;height:35px;border-radius:50%;background:var(--wh);border:none;cursor:pointer;color:white;font-size:.9rem;transition:all .2s;flex-shrink:0}
+.sb:hover{background:var(--wd);transform:scale(1.05)}
+.hw{padding:86px 5%;background:var(--cream)}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:0;max-width:940px;margin:0 auto;position:relative}
+.steps::before{content:'';position:absolute;top:33px;left:10%;right:10%;height:2px;background:linear-gradient(to right,var(--sprout),var(--sun));z-index:0}
+.step{text-align:center;padding:0 17px;position:relative;z-index:1}
+.sn{width:66px;height:66px;border-radius:50%;background:var(--earth);color:var(--cream);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:900;margin:0 auto 16px;box-shadow:0 7px 20px rgba(45,74,30,.3);border:4px solid var(--cream)}
+.step h3{font-family:'Playfair Display',serif;font-size:1.08rem;color:var(--dark);margin-bottom:6px}
+.step p{color:#718096;font-size:.83rem;line-height:1.58}
+.imp{padding:68px 5%;background:var(--sun)}
+.ig{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;max-width:940px;margin:0 auto;text-align:center}
+.in{font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:900;color:var(--earth)}
+.il{color:var(--dark);font-weight:500;margin-top:3px;font-size:.85rem}
+.aws{padding:52px 5%;background:var(--white);text-align:center}
+.aws p{color:#718096;margin-bottom:18px}
+.abs{display:flex;justify-content:center;gap:11px;flex-wrap:wrap}
+.ab{display:inline-flex;align-items:center;gap:6px;background:var(--cream);border:1px solid rgba(74,124,47,.15);padding:8px 16px;border-radius:100px;font-size:.8rem;font-weight:600;color:var(--earth)}
+footer{background:var(--dark);color:var(--cream);padding:34px 5%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+footer .logo{color:var(--cream)}
+footer p{color:rgba(248,243,232,.44);font-size:.8rem}
+@keyframes fu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ul{to{transform:scaleX(1)}}
+@keyframes mi{from{opacity:0;transform:translateY(6px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes tb{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@media(max-width:768px){.hero{grid-template-columns:1fr;padding-top:88px}.hv{display:none}.di{grid-template-columns:1fr}.ig{grid-template-columns:repeat(2,1fr)}.steps::before{display:none}nav ul{display:none}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">🌾 AgriSaarthi</div>
+  <ul>
+    <li><a href="#feat">Features</a></li>
+    <li><a href="#demo">Demo</a></li>
+    <li><a href="#how">How it Works</a></li>
+    <li><a href="#demo" class="nav-cta">Try Demo</a></li>
+  </ul>
+  <div class="lsw">
+    <button class="lb on" onclick="pl('hi',this)">हि</button>
+    <button class="lb" onclick="pl('pa',this)">ਪੰ</button>
+    <button class="lb" onclick="pl('mr',this)">म</button>
+    <button class="lb" onclick="pl('te',this)">తె</button>
+    <button class="lb" onclick="pl('en',this)">EN</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div>
+    <div class="badge">🏆 AI for Bharat Hackathon — Amazon AWS</div>
+    <h1>Your <span>AI Farming</span><br>Companion</h1>
+    <p class="hsub">किसानों का डिजिटल कृषि सहायक</p>
+    <p>Expert agricultural advice for every Indian farmer — via WhatsApp. No app needed, works on 2G, speaks Hindi, Punjabi, Marathi &amp; Telugu.</p>
+    <div class="hbtns">
+      <a href="#demo" class="bp">💬 Try Demo</a>
+      <a href="#feat" class="bs">Learn More</a>
+    </div>
+    <div class="hstats">
+      <div><div class="snum">146M</div><div class="slbl">Farmers in India</div></div>
+      <div><div class="snum">&lt;8s</div><div class="slbl">Disease Detection</div></div>
+      <div><div class="snum">₹0</div><div class="slbl">Cost to Farmer</div></div>
+    </div>
+  </div>
+  <div class="hv">
+    <div class="pm">
+      <div class="ps">
+        <div class="wh2"><div class="wav">🌾</div><div><div class="wn">AgriSaarthi</div><div class="ws">● Online</div></div></div>
+        <div class="wms">
+          <div class="wm wmr">🌾 AgriSaarthi में स्वागत है! नमस्ते!<div class="wt">10:30</div></div>
+          <div class="wm wms2">फसल में कीड़े हैं 🐛<div class="wt">10:31</div></div>
+          <div class="wm wmr">📸 फोटो भेजें!<div class="wt">10:31</div></div>
+          <div class="wm wms2">[Wheat Photo 📷]<div class="wt">10:32</div></div>
+          <div class="wm wmr">🔍 <b>पीला रतुआ</b> ⚠️<br>Propiconazole 1ml/L<br>✅ 7-10 दिन में ठीक<div class="wt">10:32</div></div>
+        </div>
+        <div class="wb2"><input class="wi" placeholder="Type..." readonly><button class="ws2">➤</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="feat" style="background:var(--white)">
+  <div class="sl">What We Offer</div>
+  <h2 class="st">Everything a Farmer Needs</h2>
+  <p class="ss">From pest detection to market prices — all via WhatsApp in your language.</p>
+  <div class="fg">
+    <div class="fc"><div class="fi" style="background:rgba(231,76,60,.1)">🐛</div><h3>Pest Detection</h3><p>Upload a crop photo and get AI diagnosis with treatment in under 8 seconds.</p><span class="ftag">AWS Bedrock Vision</span></div>
+    <div class="fc"><div class="fi" style="background:rgba(52,152,219,.1)">🌤️</div><h3>Weather Intelligence</h3><p>Hyperlocal 7-day forecasts with farming-specific alerts for irrigation and spraying.</p><span class="ftag">OpenWeather API</span></div>
+    <div class="fc"><div class="fi" style="background:rgba(39,174,96,.1)">💰</div><h3>Mandi Prices</h3><p>Real-time market rates vs MSP. Find the best mandi and avoid distress selling.</p><span class="ftag">Agmarknet Gov API</span></div>
+    <div class="fc"><div class="fi" style="background:rgba(155,89,182,.1)">📋</div><h3>Govt Schemes</h3><p>PM-KISAN, PMFBY, KCC eligibility checking with step-by-step guidance.</p><span class="ftag">₹2.8L Crore Schemes</span></div>
+    <div class="fc"><div class="fi" style="background:rgba(245,200,66,.15)">🌾</div><h3>Crop Advisory</h3><p>Stage-wise irrigation, fertilizer, and harvesting guidance from your sowing date.</p><span class="ftag">AWS Bedrock Claude 3</span></div>
+    <div class="fc"><div class="fi" style="background:rgba(37,211,102,.1)">🗣️</div><h3>4 Languages</h3><p>Hindi, Punjabi, Marathi, Telugu — advice in the language farmers understand best.</p><span class="ftag">AWS Translate</span></div>
+  </div>
+</section>
+
+<section class="ds" id="demo">
+  <div class="di">
+    <div class="dt">
+      <div class="sl">Live Demo</div>
+      <h2 class="st">Try AgriSaarthi Now</h2>
+      <p>Select your language, click quick replies, type a message, or upload a real crop photo for AI pest detection.</p>
+      <div class="dfs">
+        <div class="df"><div class="dfi">📸</div><div class="dft">Upload any crop photo — see AI diagnosis</div></div>
+        <div class="df"><div class="dfi">🗣️</div><div class="dft">Switch between Hindi, Punjabi, Marathi, Telugu</div></div>
+        <div class="df"><div class="dfi">🌤️</div><div class="dft">Ask about weather, prices, schemes</div></div>
+        <div class="df"><div class="dfi">⚡</div><div class="dft">Responses in under 3 seconds</div></div>
+      </div>
+    </div>
+    <div class="cb">
+      <div class="ch">
+        <div class="ca">🌾</div>
+        <div><div class="cn">AgriSaarthi</div><div class="cs" id="cst">AI Agricultural Advisor • हिंदी</div></div>
+        <div class="cod"></div>
+      </div>
+      <div class="clb">
+        <span>🌐</span>
+        <button class="cl on" onclick="sl('hi',this)">हिंदी</button>
+        <button class="cl" onclick="sl('pa',this)">ਪੰਜਾਬੀ</button>
+        <button class="cl" onclick="sl('mr',this)">मराठी</button>
+        <button class="cl" onclick="sl('te',this)">తెలుగు</button>
+        <button class="cl" onclick="sl('en',this)">English</button>
+      </div>
+      <div class="qb" id="qb"></div>
+      <div class="uh">📸 Tap <b>🌿</b> to upload a crop photo for AI pest detection</div>
+      <div class="cm2" id="cm">
+        <div class="msg2 mr2" id="wm"></div>
+        <div class="tyi" id="ti"><span class="td"></span><span class="td"></span><span class="td"></span></div>
+        <div class="an" id="ab">🔍 <span id="at"></span><div class="pr"><div class="pf" id="pf"></div></div></div>
+      </div>
+      <div class="cia">
+        <input class="ci" id="ci" placeholder="Type in your language..." onkeypress="if(event.key==='Enter')send()">
+        <button class="ub" title="Upload crop photo">🌿<input type="file" accept="image/*" onchange="hu(event)"></button>
+        <button class="sb" onclick="send()">➤</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hw" id="how">
+  <div class="sl">Simple Process</div>
+  <h2 class="st">How AgriSaarthi Works</h2>
+  <p class="ss">Get expert agricultural advice in 4 simple steps.</p>
+  <div class="steps">
+    <div class="step"><div class="sn">1</div><h3>Open WhatsApp</h3><p>No app download. Send "Hi" to AgriSaarthi's number.</p></div>
+    <div class="step"><div class="sn">2</div><h3>Register in 2 mins</h3><p>Tell us your name, district, and crop.</p></div>
+    <div class="step"><div class="sn">3</div><h3>Ask Anything</h3><p>Send text or photos in Hindi, Punjabi, Marathi, Telugu.</p></div>
+    <div class="step"><div class="sn">4</div><h3>Get Expert Advice</h3><p>AI-powered responses in under 8 seconds.</p></div>
+  </div>
+</section>
+
+<section class="imp">
+  <div class="ig">
+    <div><div class="in">86%</div><div class="il">Farmers are small/marginal</div></div>
+    <div><div class="in">₹50K</div><div class="il">Annual loss per farmer</div></div>
+    <div><div class="in">400M+</div><div class="il">WhatsApp users in India</div></div>
+    <div><div class="in">4</div><div class="il">Regional languages</div></div>
+  </div>
+</section>
+
+<section class="aws">
+  <p>Built entirely on Amazon Web Services</p>
+  <div class="abs">
+    <div class="ab">⚡ Amazon Bedrock</div>
+    <div class="ab">🗄️ DynamoDB</div>
+    <div class="ab">☁️ Amazon S3</div>
+    <div class="ab">λ AWS Lambda</div>
+    <div class="ab">🔄 ElastiCache</div>
+    <div class="ab">🌐 AWS Translate</div>
+  </div>
+</section>
+
+<footer>
+  <div class="logo">🌾 AgriSaarthi</div>
+  <p>Built for AI for Bharat Hackathon 2025 · Amazon AWS</p>
+  <p style="color:rgba(248,243,232,.34);font-size:.76rem">किसानों के लिए, किसानों द्वारा</p>
+</footer>
+
+<script>
+const D={
+  hi:{name:'हिंदी',ph:'हिंदी में टाइप करें...',az:'फसल की फोटो का विश्लेषण हो रहा है...',
+    wc:'🌾 <b>AgriSaarthi में आपका स्वागत है!</b><br><br>नमस्ते! मैं आपका AI कृषि सहायक हूं।<br><br>🐛 फसल रोग पहचान (📸 फोटो भेजें)<br>🌤️ मौसम की जानकारी<br>💰 मंडी के भाव<br>📋 सरकारी योजनाएं',
+    qr:['🌤️ मौसम','💰 मंडी भाव','📋 PM-KISAN','🌾 फसल सलाह','🐛 कीड़े'],
+    r:{'मौसम':'🌤️ *लुधियाना मौसम*\n\n🌡️ तापमान: 24°C\n💧 नमी: 65%\n🌧️ बारिश: नहीं\n\n✅ आज छिड़काव के लिए अच्छा दिन\n⚠️ 3 दिन में हल्की बारिश संभव',
+      'मंडी भाव':'💰 *लुधियाना मंडी — गेहूं*\n\n📉 न्यूनतम: ₹2,280/क्विंटल\n📊 औसत: ₹2,350/क्विंटल\n\n✅ MSP ₹2,275 से ऊपर!\n💡 भाव बढ़ रहा है — 1 सप्ताह इंतजार करें',
+      'pm-kisan':'📋 *PM-KISAN योजना*\n\n💰 ₹6,000/वर्ष (3 किश्तें)\n✅ 2 हेक्टेयर तक के किसान\n🌐 pmkisan.gov.in | 📞 155261',
+      'फसल सलाह':'🌾 *गेहूं सलाह — 45 दिन*\n\n💧 सिंचाई अभी जरूरी\n🌱 यूरिया 50 kg/एकड़\n🐛 पत्तियों पर जंग के दाग देखें',
+      'कीड़े':'📸 फसल की फोटो भेजें!\n\n🌿 बटन दबाकर फोटो अपलोड करें\n\nAI से रोग पहचान करूंगा 🔍',
+      'pest':'🔍 *AI रोग पहचान — गेहूं*\n\n🐛 <b>पीला रतुआ (Yellow Rust)</b>\nगंभीरता: मध्यम ⚠️\n\n💊 उपचार: Propiconazole 25% EC — 1ml/लीटर\n🌿 जैविक: नीम का तेल 5ml/लीटर\n\n⏱️ ठीक होगा: 7-10 दिन\n\n✅ सही? 1 | ❌ गलत? 2',
+      'def':'मैं समझ गया! 🤔\n\nकृपया चुनें:\n🌤️ मौसम | 💰 मंडी भाव\n📋 PM-KISAN | 🌾 फसल सलाह | 📸 कीड़े'}},
+  pa:{name:'ਪੰਜਾਬੀ',ph:'ਪੰਜਾਬੀ ਵਿੱਚ ਟਾਈਪ ਕਰੋ...',az:'ਫਸਲ ਦੀ ਫੋਟੋ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਹੋ ਰਿਹਾ ਹੈ...',
+    wc:'🌾 <b>AgriSaarthi ਵਿੱਚ ਤੁਹਾਡਾ ਸੁਆਗਤ ਹੈ!</b><br><br>ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਤੁਹਾਡਾ AI ਖੇਤੀਬਾੜੀ ਸਹਾਇਕ ਹਾਂ।<br><br>🐛 ਫਸਲ ਰੋਗ ਪਛਾਣ (📸 ਫੋਟੋ ਭੇਜੋ)<br>🌤️ ਮੌਸਮ<br>💰 ਮੰਡੀ ਭਾਅ<br>📋 ਸਰਕਾਰੀ ਯੋਜਨਾਵਾਂ',
+    qr:['🌤️ ਮੌਸਮ','💰 ਮੰਡੀ ਭਾਅ','📋 PM-KISAN','🌾 ਫਸਲ ਸਲਾਹ','🐛 ਕੀੜੇ'],
+    r:{'ਮੌਸਮ':'🌤️ *ਲੁਧਿਆਣਾ ਮੌਸਮ*\n\n🌡️ ਤਾਪਮਾਨ: 24°C\n💧 ਨਮੀ: 65%\n\n✅ ਅੱਜ ਛਿੜਕਾਅ ਲਈ ਚੰਗਾ ਦਿਨ',
+      'ਮੰਡੀ ਭਾਅ':'💰 *ਲੁਧਿਆਣਾ ਮੰਡੀ — ਕਣਕ*\n\n📊 ਔਸਤ: ₹2,350/ਕੁਇੰਟਲ\n✅ MSP ਤੋਂ ਉੱਪਰ!',
+      'pm-kisan':'📋 *PM-KISAN*\n\n💰 ₹6,000/ਸਾਲ\n✅ 2 ਹੈਕਟੇਅਰ ਤੱਕ | 📞 155261',
+      'ਫਸਲ ਸਲਾਹ':'🌾 *ਕਣਕ ਸਲਾਹ*\n\n💧 ਸਿੰਚਾਈ ਜ਼ਰੂਰੀ\n🌱 ਯੂਰੀਆ 50 kg/ਏਕੜ',
+      'ਕੀੜੇ':'📸 ਫਸਲ ਦੀ ਫੋਟੋ ਭੇਜੋ!\n🌿 ਬਟਨ ਦਬਾ ਕੇ ਅਪਲੋਡ ਕਰੋ',
+      'pest':'🔍 *AI ਰੋਗ ਪਛਾਣ*\n\n🐛 <b>ਪੀਲੀ ਕੁੰਗੀ (Yellow Rust)</b>\nਗੰਭੀਰਤਾ: ਮੱਧਮ ⚠️\n\n💊 Propiconazole 1ml/ਲੀਟਰ\n⏱️ 7-10 ਦਿਨ ਵਿੱਚ ਠੀਕ',
+      'def':'ਕਿਰਪਾ ਕਰਕੇ ਚੁਣੋ:\n🌤️ ਮੌਸਮ | 💰 ਮੰਡੀ ਭਾਅ\n📋 PM-KISAN | 🌾 ਫਸਲ ਸਲਾਹ'}},
+  mr:{name:'मराठी',ph:'मराठीत टाइप करा...',az:'पिकाच्या फोटोचे विश्लेषण होत आहे...',
+    wc:'🌾 <b>AgriSaarthi मध्ये आपले स्वागत आहे!</b><br><br>नमस्कार! मी तुमचा AI कृषी सहाय्यक आहे।<br><br>🐛 पीक रोग ओळख (📸 फोटो पाठवा)<br>🌤️ हवामान<br>💰 बाजार भाव<br>📋 सरकारी योजना',
+    qr:['🌤️ हवामान','💰 बाजार भाव','📋 PM-KISAN','🌾 पीक सल्ला','🐛 कीड'],
+    r:{'हवामान':'🌤️ *पुणे हवामान*\n\n🌡️ तापमान: 26°C\n💧 आर्द्रता: 60%\n\n✅ आज फवारणीसाठी चांगला दिवस',
+      'बाजार भाव':'💰 *पुणे मार्केट — गहू*\n\n📊 सरासरी: ₹2,380/क्विंटल\n✅ MSP पेक्षा जास्त!',
+      'pm-kisan':'📋 *PM-KISAN*\n\n💰 ₹6,000/वर्ष\n✅ 2 हेक्टर पर्यंत | 📞 155261',
+      'पीक सल्ला':'🌾 *गहू सल्ला*\n\n💧 पाणी आवश्यक\n🌱 युरिया 50 kg/एकर',
+      'कीड':'📸 पिकाचा फोटो पाठवा!\n🌿 बटण दाबून अपलोड करा',
+      'pest':'🔍 *AI रोग ओळख*\n\n🐛 <b>पिवळा गंज (Yellow Rust)</b>\nतीव्रता: मध्यम ⚠️\n\n💊 Propiconazole 1ml/लिटर\n⏱️ 7-10 दिवसात बरे',
+      'def':'कृपया निवडा:\n🌤️ हवामान | 💰 बाजार भाव\n📋 PM-KISAN | 🌾 पीक सल्ला'}},
+  te:{name:'తెలుగు',ph:'తెలుగులో టైప్ చేయండి...',az:'పంట ఫోటో విశ్లేషణ జరుగుతోంది...',
+    wc:'🌾 <b>AgriSaarthi కి స్వాగతం!</b><br><br>నమస్కారం! నేను మీ AI వ్యవసాయ సహాయకుడిని।<br><br>🐛 పంట వ్యాధి గుర్తింపు (📸 ఫోటో పంపండి)<br>🌤️ వాతావరణం<br>💰 మార్కెట్ ధరలు<br>📋 ప్రభుత్వ పథకాలు',
+    qr:['🌤️ వాతావరణం','💰 మార్కెట్ ధర','📋 PM-KISAN','🌾 పంట సలహా','🐛 పురుగులు'],
+    r:{'వాతావరణం':'🌤️ *హైదరాబాద్ వాతావరణం*\n\n🌡️ ఉష్ణోగ్రత: 28°C\n💧 తేమ: 58%\n\n✅ నేడు పురుగుమందు చల్లడానికి మంచి రోజు',
+      'మార్కెట్ ధర':'💰 *హైదరాబాద్ — వరి*\n\n📊 సగటు: ₹2,350/క్వింటాల్\n✅ MSP కంటే ఎక్కువ!',
+      'pm-kisan':'📋 *PM-KISAN*\n\n💰 ₹6,000/సంవత్సరం\n✅ 2 హెక్టార్ల వరకు | 📞 155261',
+      'పంట సలహా':'🌾 *వరి సలహా*\n\n💧 నీరు పెట్టడం అవసరం\n🌱 యూరియా 50 kg/ఎకరం',
+      'పురుగులు':'📸 పంట ఫోటో పంపండి!\n🌿 బటన్ నొక్కి అప్‌లోడ్ చేయండి',
+      'pest':'🔍 *AI వ్యాధి గుర్తింపు*\n\n🐛 <b>బ్లాస్ట్ (Rice Blast)</b>\nతీవ్రత: మధ్యస్థం ⚠️\n\n💊 Tricyclazole 0.6g/లీటర్\n⏱️ 10-14 రోజులలో నయం',
+      'def':'దయచేసి ఎంచుకోండి:\n🌤️ వాతావరణం | 💰 మార్కెట్\n📋 PM-KISAN | 🌾 పంట సలహా'}},
+  en:{name:'English',ph:'Type in English...',az:'Analyzing your crop image with AI...',
+    wc:'🌾 <b>Welcome to AgriSaarthi!</b><br><br>Hello! I am your AI agricultural advisor.<br><br>🐛 Crop disease detection (📸 send a photo)<br>🌤️ Weather information<br>💰 Mandi prices<br>📋 Government schemes',
+    qr:['🌤️ Weather','💰 Mandi Price','📋 PM-KISAN','🌾 Crop Advisory','🐛 Pests'],
+    r:{'weather':'🌤️ *Ludhiana Weather*\n\n🌡️ Temperature: 24°C\n💧 Humidity: 65%\n🌧️ Rain: None today\n\n✅ Good day for spraying\n⚠️ Light rain in 3 days',
+      'mandi price':'💰 *Ludhiana Mandi — Wheat*\n\n📊 Average: ₹2,350/quintal\n✅ Above MSP ₹2,275!\n💡 Price rising — wait 1 week',
+      'pm-kisan':'📋 *PM-KISAN Scheme*\n\n💰 ₹6,000/year\n✅ Up to 2 hectares\n🌐 pmkisan.gov.in | 📞 155261',
+      'crop advisory':'🌾 *Wheat Advisory — Day 45*\n\n💧 Irrigation needed urgently\n🌱 Apply Urea 50 kg/acre\n🐛 Watch for rust on leaves',
+      'pests':'📸 Send a photo of your crop!\n\nClick 🌿 to upload\nI will diagnose with AI 🔍',
+      'pest':'🔍 *AI Disease Detection — Wheat*\n\n🐛 <b>Yellow Rust</b>\nSeverity: Medium ⚠️\n\n💊 Propiconazole 25% EC — 1ml/litre\n🌿 Neem oil 5ml/litre (organic)\n\n⏱️ Recovery: 7-10 days\n\n✅ Correct? 1 | ❌ Wrong? 2',
+      'def':'I understand! 🤔\n\nPlease choose:\n🌤️ Weather | 💰 Mandi Price\n📋 PM-KISAN | 🌾 Crop Advisory | 📸 Pests'}}
+};
+
+let lg='hi';
+function gt(){return new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}
+
+function sl(l,btn){
+  lg=l;
+  document.querySelectorAll('.cl').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  document.getElementById('cst').textContent='AI Agricultural Advisor \u2022 '+D[l].name;
+  document.getElementById('ci').placeholder=D[l].ph;
+  rqr();
+  const w=document.getElementById('wm');
+  w.innerHTML=D[l].wc+'<div class="mt">'+gt()+'</div>';
+}
+
+function pl(l,btn){
+  document.querySelectorAll('.lb').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  const map={hi:0,pa:1,mr:2,te:3,en:4};
+  sl(l,document.querySelectorAll('.cl')[map[l]]);
+}
+
+function rqr(){
+  document.getElementById('qb').innerHTML=D[lg].qr.map(q=>'<button class="qr" onclick="sq(\''+q+'\')">'+q+'</button>').join('');
+}
+
+function am(txt,type,html){
+  const c=document.getElementById('cm'),ti=document.getElementById('ti');
+  const d=document.createElement('div');
+  d.className='msg2 '+(type==='s'?'ms2':'mr2');
+  const f=html?txt:txt.replace(/\*(.*?)\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+  d.innerHTML=f+'<div class="mt">'+gt()+'</div>';
+  c.insertBefore(d,ti);c.scrollTop=c.scrollHeight;
+}
+
+function aim(src,name){
+  const c=document.getElementById('cm'),ti=document.getElementById('ti');
+  const d=document.createElement('div');d.className='imm';
+  d.innerHTML='<img src="'+src+'" alt="crop"><div class="imc">📷 '+name+' \u2022 '+gt()+'</div>';
+  c.insertBefore(d,ti);c.scrollTop=c.scrollHeight;
+}
+
+function sty(s){document.getElementById('ti').style.display=s?'block':'none'}
+
+function san(s){
+  const el=document.getElementById('ab');el.style.display=s?'block':'none';
+  if(s){document.getElementById('at').textContent=D[lg].az;
+    const pf=document.getElementById('pf');pf.style.width='0';
+    setTimeout(()=>{pf.style.width='100%'},50);
+    document.getElementById('cm').scrollTop=99999;}
+}
+
+function gr(txt){
+  const t=txt.toLowerCase().replace(/[^\u0900-\u09ff\u0a00-\u0a7f\u0c00-\u0c7f\w\s]/g,'').trim();
+  const r=D[lg].r;
+  for(const k of Object.keys(r)){if(k==='def'||k==='pest')continue;if(t.includes(k.toLowerCase()))return r[k];}
+  return r['def'];
+}
+
+function send(){
+  const inp=document.getElementById('ci'),t=inp.value.trim();
+  if(!t)return;am(t,'s');inp.value='';
+  sty(true);setTimeout(()=>{sty(false);am(gr(t),'r')},900+Math.random()*500);
+}
+
+function sq(t){document.getElementById('ci').value=t;send();}
+
+function hu(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=function(ev){
+    aim(ev.target.result,f.name);san(true);
+    setTimeout(()=>{san(false);am(D[lg].r['pest'],'r')},3200);
+  };
+  r.readAsDataURL(f);e.target.value='';
+}
+
+window.onload=function(){
+  rqr();
+  document.getElementById('wm').innerHTML=D['hi'].wc+'<div class="mt">'+gt()+'</div>';
+};
+</script>
+</body>
+</html>

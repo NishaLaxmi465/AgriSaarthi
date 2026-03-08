@@ -1,0 +1,218 @@
+"""
+Anthropic API Service - replaces AWS Bedrock.
+Drop-in replacement - all method signatures stay the same.
+"""
+
+import anthropic
+import base64
+import logging
+import httpx
+from typing import Optional
+from datetime import datetime
+
+from app.config import settings
+
+logger = logging.getLogger(__name__)
+
+LANG_NAMES = {
+    "hi": "Hindi (हिंदी)",
+    "pa": "Punjabi (ਪੰਜਾਬੀ)",
+    "mr": "Marathi (मराठी)",
+    "te": "Telugu (తెలుగు)",
+    "bn": "Bengali (বাংলা)",
+    "gu": "Gujarati (ગુજराती)",
+    "en": "English",
+}
+
+CROP_NAMES = {
+    "wheat":     {"hi":"गेहूं",    "pa":"ਕਣਕ",    "mr":"गहू",    "te":"గోధుమ",       "bn":"গম",      "gu":"ઘઉં",    "en":"Wheat"},
+    "rice":      {"hi":"धान",      "pa":"ਝੋਨਾ",   "mr":"भात",    "te":"వరి",          "bn":"ধান",     "gu":"ડાંગર",  "en":"Rice"},
+    "maize":     {"hi":"मक्का",    "pa":"ਮੱਕੀ",   "mr":"मका",    "te":"మొక్కజొన్న",  "bn":"ভুট্টা",  "gu":"મکाई",   "en":"Maize"},
+    "sugarcane": {"hi":"गन्ना",    "pa":"ਗੰਨਾ",   "mr":"ऊस",     "te":"చెరకు",        "bn":"আখ",      "gu":"શेरडी",  "en":"Sugarcane"},
+    "cotton":    {"hi":"कपास",     "pa":"ਕਪਾਹ",   "mr":"कापूस",  "te":"పత్తి",        "bn":"তুলা",    "gu":"કпаস",   "en":"Cotton"},
+    "soybean":   {"hi":"सोयाबीन",  "pa":"ਸੋਇਆਬੀਨ","mr":"सोयाबीन","te":"సోయాబీన్",    "bn":"সয়াবিন", "gu":"સोयाबीन","en":"Soybean"},
+    "mustard":   {"hi":"सरसों",    "pa":"ਸਰ੍ਹੋਂ", "mr":"मोहरी",  "te":"ఆవాలు",        "bn":"সরিষা",   "gu":"સрसव",   "en":"Mustard"},
+    "tomato":    {"hi":"टमाटर",    "pa":"ਟਮਾਟਰ",  "mr":"टोमॅटो", "te":"టమాటా",        "bn":"টমেটো",   "gu":"ટामेटा", "en":"Tomato"},
+    "onion":     {"hi":"प्याज",    "pa":"ਪਿਆਜ਼",  "mr":"कांदा",  "te":"ఉల్లిపాయ",     "bn":"পেঁয়াজ", "gu":"ડुंगळी", "en":"Onion"},
+    "potato":    {"hi":"आलू",      "pa":"ਆਲੂ",    "mr":"बटाटा",  "te":"బంగాళాదుంప",  "bn":"আলু",     "gu":"બटाका",  "en":"Potato"},
+}
+
+ERROR_MSGS = {
+    "hi": "⚠️ क्षमा करें, सेवा अभी उपलब्ध नहीं। थोड़ी देर बाद कोशिश करें।",
+    "pa": "⚠️ ਮਾਫ਼ ਕਰੋ, ਸੇਵਾ ਹੁਣ ਉਪਲਬਧ ਨਹੀਂ। ਥੋੜੀ ਦੇਰ ਬਾਅਦ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+    "mr": "⚠️ क्षमा करा, सेवा सध्या उपलब्ध नाही. पुन्हा प्रयत्न करा.",
+    "te": "⚠️ క్షమించండి, సేవ అందుబాటులో లేదు. మళ్ళీ ప్రయత్నించండి.",
+    "bn": "⚠️ দুঃখিত, সেবা এখন পাওয়া যাচ্ছে না. আবার চেষ্টা করুন.",
+    "gu": "⚠️ માফ કরো, સेवा हाल उपलब्ध नथी.",
+    "en": "⚠️ Sorry, the service is temporarily unavailable. Please try again shortly.",
+}
+
+
+class BedrockService:
+    """Anthropic API client — same interface as original BedrockService."""
+
+    def __init__(self):
+        self.client = anthropic.Anthropic(
+            api_key=settings.ANTHROPIC_API_KEY,
+        )
+        self.model = "claude-3-haiku-20240307"   # fast + cheap
+        self.vision_model = "claude-3-5-sonnet-20241022"  # best for images
+
+    def _get_crop_name(self, crop: str, lang: str) -> str:
+        return CROP_NAMES.get(crop, {}).get(lang) or CROP_NAMES.get(crop, {}).get("en", crop)
+
+    async def invoke_model(self, prompt: str, lang: str = "hi", max_tokens: int = 512) -> str:
+        lang_name = LANG_NAMES.get(lang, "English")
+        try:
+            response = self.client.messages.create(
+                model=self.model,
+                max_tokens=max_tokens,
+                system=(
+                    f"You are AgriSaarthi, an AI agricultural advisor for Indian farmers. "
+                    f"ALWAYS respond ONLY in {lang_name}. "
+                    f"Keep responses under 200 words. Use emojis for clarity. "
+                    f"Give practical, actionable advice. Format nicely for WhatsApp."
+                ),
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return response.content[0].text
+        except Exception as e:
+            logger.error(f"Anthropic API error: {e}")
+            return ERROR_MSGS.get(lang, ERROR_MSGS["en"])
+
+    async def invoke_vision_model(self, prompt: str, image_base64: str,
+                                   media_type: str = "image/jpeg", lang: str = "hi") -> str:
+        lang_name = LANG_NAMES.get(lang, "English")
+        try:
+            response = self.client.messages.create(
+                model=self.vision_model,
+                max_tokens=1024,
+                system=(
+                    f"You are AgriSaarthi, an expert in Indian crop diseases and pests. "
+                    f"Respond ONLY in {lang_name}. "
+                    f"Be precise and give actionable treatment advice with product names."
+                ),
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": media_type,
+                                "data": image_base64,
+                            },
+                        },
+                        {"type": "text", "text": prompt},
+                    ],
+                }],
+            )
+            return response.content[0].text
+        except Exception as e:
+            logger.error(f"Anthropic vision error: {e}")
+            vision_errors = {
+                "hi": "⚠️ फोटो विश्लेषण में समस्या आई। कृपया दोबारा भेजें।",
+                "en": "⚠️ Could not analyse the photo. Please send it again.",
+            }
+            return vision_errors.get(lang, vision_errors["en"])
+
+    async def get_crop_advisory(self, crop: str, sowing_date: Optional[str],
+                                 district: str, lang: str = "hi") -> str:
+        crop_name = self._get_crop_name(crop, lang)
+        days = 0
+        if sowing_date and sowing_date != "0":
+            try:
+                sow = datetime.strptime(sowing_date, "%d/%m/%Y")
+                days = (datetime.now() - sow).days
+            except Exception:
+                pass
+
+        prompts = {
+            "hi": (
+                f"फसल: {crop_name} | जिला: {district}"
+                + (f" | बुवाई के {days} दिन बाद" if days else "") +
+                f"\n\nअभी क्या करें? सिंचाई, खाद, कीट निगरानी और अगला काम बताएं। "
+                f"150 शब्दों में, बिंदुओं में।"
+            ),
+            "pa": (
+                f"ਫਸਲ: {crop_name} | ਜ਼ਿਲ੍ਹਾ: {district}"
+                + (f" | ਬਿਜਾਈ ਦੇ {days} ਦਿਨ ਬਾਅਦ" if days else "") +
+                f"\n\nਹੁਣ ਕੀ ਕਰਨਾ ਚਾਹੀਦਾ ਹੈ? ਸਿੰਚਾਈ, ਖਾਦ, ਕੀੜੇ ਅਤੇ ਅਗਲਾ ਕੰਮ ਦੱਸੋ।"
+            ),
+            "mr": (
+                f"पीक: {crop_name} | जिल्हा: {district}"
+                + (f" | पेरणीनंतर {days} दिवस" if days else "") +
+                f"\n\nआत्ता काय करावे? सिंचन, खत, कीड आणि पुढचे काम सांगा."
+            ),
+            "te": (
+                f"పంట: {crop_name} | జిల్లా: {district}"
+                + (f" | విత్తిన {days} రోజులు" if days else "") +
+                f"\n\nఇప్పుడు ఏమి చేయాలి? నీటిపారుదల, ఎరువు, చీడ నిర్వహణ చెప్పండి."
+            ),
+            "bn": (
+                f"ফসল: {crop_name} | জেলা: {district}"
+                + (f" | বপনের {days} দিন পর" if days else "") +
+                f"\n\nএখন কী করবেন? সেচ, সার, কীটপতঙ্গ ব্যবস্থাপনা বলুন."
+            ),
+            "gu": (
+                f"પाक: {crop_name} | জিल্লো: {district}"
+                + (f" | বাবণী পছী {days} দিবস" if days else "") +
+                f"\n\nহবে শু करबু? সিংচাই, খাদ, কীড নিয়ন্ত্রণ বতাও."
+            ),
+            "en": (
+                f"Crop: {crop_name} | District: {district}"
+                + (f" | {days} days since sowing" if days else "") +
+                f"\n\nWhat should the farmer do right now? "
+                f"Cover: irrigation schedule, fertilizer application, pest monitoring, and next key task. "
+                f"Keep it under 150 words, use bullet points."
+            ),
+        }
+
+        prompt = prompts.get(lang) or prompts["en"]
+        return await self.invoke_model(prompt, lang, max_tokens=400)
+
+    async def get_general_response(self, query: str, session: dict, lang: str = "hi") -> str:
+        crop = session.get("crop", "wheat")
+        district = session.get("district", "")
+        crop_name = self._get_crop_name(crop, lang)
+
+        prompts = {
+            "hi": (
+                f"किसान का सवाल: {query}\n"
+                f"संदर्भ: {district} में {crop_name} की खेती\n"
+                f"सरल हिंदी में जवाब दें (100 शब्द)।"
+            ),
+            "pa": (
+                f"ਕਿਸਾਨ ਦਾ ਸਵਾਲ: {query}\n"
+                f"ਸੰਦਰਭ: {district} ਵਿੱਚ {crop_name} ਦੀ ਖੇਤੀ\n"
+                f"ਸਰਲ ਪੰਜਾਬੀ ਵਿੱਚ ਜਵਾਬ ਦਿਓ।"
+            ),
+            "mr": (
+                f"शेतकऱ्याचा प्रश्न: {query}\n"
+                f"संदर्भ: {district} मध्ये {crop_name} शेती\n"
+                f"सोप्या मराठीत उत्तर द्या."
+            ),
+            "te": (
+                f"రైతు ప్రశ్న: {query}\n"
+                f"సందర్భం: {district}లో {crop_name} సాగు\n"
+                f"సరళమైన తెలుగులో సమాధానం చెప్పండి."
+            ),
+            "bn": (
+                f"কৃষকের প্রশ্ন: {query}\n"
+                f"প্রসঙ্গ: {district}তে {crop_name} চাষ\n"
+                f"সহজ বাংলায় উত্তর দিন."
+            ),
+            "gu": (
+                f"ખेडूতনো સవাল: {query}\n"
+                f"সংদর্ভ: {district}মাँ {crop_name} ખেতী\n"
+                f"সরল ভাষায় জবাব দো."
+            ),
+            "en": (
+                f"Farmer's question: {query}\n"
+                f"Context: Growing {crop_name} in {district}\n"
+                f"Answer in simple English in under 100 words. Be practical and specific."
+            ),
+        }
+
+        prompt = prompts.get(lang) or prompts["en"]
+        return await self.invoke_model(prompt, lang, max_tokens=300)
